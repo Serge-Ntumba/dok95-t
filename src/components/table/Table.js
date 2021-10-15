@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import TableBase from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -6,7 +6,10 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import ShowModal from "../../data/Modal";
+import Input from "@mui/material/Input";
+import TableSortLabel from '@mui/material/TableSortLabel';
+import TablePagination from '@mui/material/TablePagination';
+import ShowModal from "../modal/Modal";
 
 const headRows = [
   "User",
@@ -76,12 +79,51 @@ const transformDays = (days) => {
 
 const Table = ({ data }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [searched, setSearched] = useState("");
+  const [order, setOrder] = useState("asc");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const isOpenHandler = () => {
     setIsOpen(true);
   };
   const isCloseHandler = () => {
     setIsOpen(false);
   };
+
+  const filteredRows = useMemo(() => data
+    .filter((row) => row.Fullname.toLowerCase().includes(searched.toLowerCase())), [data, searched])
+
+  const rows = useMemo(
+    () => {
+      const result = filteredRows
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+      if (order) {
+        return result.sort((a, b) => {
+          if (a.Fullname === b.Fullname) return 0;
+
+          if (order === 'asc') {
+            return a.Fullname > b.Fullname ? 1 : -1;
+          } else {
+            return a.Fullname < b.Fullname ? 1 : -1;
+          }
+        })
+      }
+
+      return result;
+    },
+    [filteredRows, order, page, rowsPerPage]
+  );
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   return (
     <>
       {isOpen ? (
@@ -90,43 +132,71 @@ const Table = ({ data }) => {
           setCloseModal={isCloseHandler}
         />
       ) : (
-        <TableContainer component={Paper}>
-          <TableBase sx={{ minWidth: 650 }} aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                {headRows.map((row) => (
-                  <TableCell key={row}>
-                    <button onClick={isOpenHandler}>{row}</button>
+        <Paper>
+          <Input
+            value={searched}
+            placeholder="Search"
+            onChange={(e) => {
+              setSearched(e.target.value);
+              setPage(0);
+            }}
+          />
+          <TableContainer component={Paper}>
+            <TableBase sx={{ minWidth: 650 }} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>
+                    <TableSortLabel
+                      active={true}
+                      direction={order}
+                      onClick={() => setOrder((prev) => prev === 'asc' ? 'desc' : 'asc')}
+                    >
+                      <button onClick={isOpenHandler}>{headRows[0]}</button>
+                    </TableSortLabel>
                   </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data.map((row) => (
-                <TableRow
-                  key={row.Fullname}
-                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                >
-                  <TableCell component="th" scope="row">
-                    {row.Fullname}
-                  </TableCell>
-                  {transformDays(row.Days).map((day, i) => (
-                    <TableCell key={i} align="right">
-                      {showTime(calcTime(day.Start, day.End))}
+                  {headRows.slice(1).map((row) => (
+                    <TableCell key={row}>
+                      <button onClick={isOpenHandler}>{row}</button>
                     </TableCell>
                   ))}
-                  <TableCell>
-                    {calcTotal(
-                      transformDays(row.Days).map((day) =>
-                        calcTime(day.Start, day.End)
-                      )
-                    )}
-                  </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </TableBase>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow
+                    key={row.Fullname}
+                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                  >
+                    <TableCell component="th" scope="row">
+                      {row.Fullname}
+                    </TableCell>
+                    {transformDays(row.Days).map((day, i) => (
+                      <TableCell key={i} align="right">
+                        {showTime(calcTime(day.Start, day.End))}
+                      </TableCell>
+                    ))}
+                    <TableCell>
+                      {calcTotal(
+                        transformDays(row.Days).map((day) =>
+                          calcTime(day.Start, day.End)
+                        )
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </TableBase>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={filteredRows.length}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
       )}
     </>
   );
