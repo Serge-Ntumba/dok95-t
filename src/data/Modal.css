@@ -1,22 +1,24 @@
 .modalBackground {
   width: 100vw;
   height: 100vh;
-  background-color: rgba(200, 200, 200);
+  background-color: rgba(0, 0, 0, 0.7);
   position: fixed;
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
 .modalContainer {
-  width: 500px;
-  height: 500px;
+  width: 300px;
+  height: 300px;
   border-radius: 12px;
   background-color: white;
   box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
   display: flex;
   flex-direction: column;
   padding: 25px;
+  z-index: 1000;
 }
 
 .modalContainer .title {
@@ -67,4 +69,13 @@
 
 #cancelBtn {
   background-color: crimson;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
 }

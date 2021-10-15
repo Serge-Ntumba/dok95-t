@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import TableBase from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -6,6 +6,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
+import ShowModal from "../../data/Modal";
 
 const headRows = [
   "User",
@@ -74,43 +75,59 @@ const transformDays = (days) => {
 };
 
 const Table = ({ data }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const isOpenHandler = () => {
+    setIsOpen(true);
+  };
+  const isCloseHandler = () => {
+    setIsOpen(false);
+  };
   return (
     <>
-      <TableContainer component={Paper}>
-        <TableBase sx={{ minWidth: 650 }} aria-label="simple table">
-          <TableHead>
-            <TableRow>
-              {headRows.map((row) => (
-                <TableCell key={row}>{row}</TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.map((row) => (
-              <TableRow
-                key={row.Fullname}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                <TableCell component="th" scope="row">
-                  {row.Fullname}
-                </TableCell>
-                {transformDays(row.Days).map((day, i) => (
-                  <TableCell key={i} align="right">
-                    {showTime(calcTime(day.Start, day.End))}
+      {isOpen ? (
+        <ShowModal
+          setOpenModal={isOpenHandler}
+          setCloseModal={isCloseHandler}
+        />
+      ) : (
+        <TableContainer component={Paper}>
+          <TableBase sx={{ minWidth: 650 }} aria-label="simple table">
+            <TableHead>
+              <TableRow>
+                {headRows.map((row) => (
+                  <TableCell key={row}>
+                    <button onClick={isOpenHandler}>{row}</button>
                   </TableCell>
                 ))}
-                <TableCell>
-                  {calcTotal(
-                    transformDays(row.Days).map((day) =>
-                      calcTime(day.Start, day.End)
-                    )
-                  )}
-                </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </TableBase>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {data.map((row) => (
+                <TableRow
+                  key={row.Fullname}
+                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                >
+                  <TableCell component="th" scope="row">
+                    {row.Fullname}
+                  </TableCell>
+                  {transformDays(row.Days).map((day, i) => (
+                    <TableCell key={i} align="right">
+                      {showTime(calcTime(day.Start, day.End))}
+                    </TableCell>
+                  ))}
+                  <TableCell>
+                    {calcTotal(
+                      transformDays(row.Days).map((day) =>
+                        calcTime(day.Start, day.End)
+                      )
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </TableBase>
+        </TableContainer>
+      )}
     </>
   );
 };
