@@ -31,7 +31,7 @@ const ShowModal = ({ setOpenModal, setCloseModal }) => {
             </button>
           </div>
           <div className="title">
-            <h1> Погода в Екатеринбург:</h1>
+            <h1> Погода в Екатеринбург</h1>
           </div>
           <div className="body">
             <p>{temp} °C</p>
