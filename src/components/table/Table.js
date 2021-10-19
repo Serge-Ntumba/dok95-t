@@ -7,10 +7,11 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Input from "@mui/material/Input";
-import TableSortLabel from '@mui/material/TableSortLabel';
-import TablePagination from '@mui/material/TablePagination';
+import TableSortLabel from "@mui/material/TableSortLabel";
+import TablePagination from "@mui/material/TablePagination";
 import ShowModal from "../modal/Modal";
 
+// Data for the first row
 const headRows = [
   "User",
   ...Array(31)
@@ -19,6 +20,7 @@ const headRows = [
   "Monthly total",
 ];
 
+//Calculate the amount of time per day
 const calcTime = (start, end) => {
   const [startHours, startMinutes] = start.split("-");
   const [endHours, endMinutes] = end.split("-");
@@ -29,10 +31,10 @@ const calcTime = (start, end) => {
   const finalMinutes = hours * 60 + minutes;
   const finalHours = Math.trunc(finalMinutes / 60);
   const result = `${finalHours}-${finalMinutes - finalHours * 60}`;
-
   return result;
 };
 
+//Calculate the total amount of time per day
 const calcTotal = (days) => {
   const { hours, minutes } = days.reduce(
     (acc, cur) => {
@@ -48,6 +50,7 @@ const calcTotal = (days) => {
   return `${hours + finalHours}-${minutes - finalHours * 60}`;
 };
 
+//Handling case when there is no data for a day
 const showTime = (time) => {
   if (time[0] === "0" && time[2] === "0") {
     return 0;
@@ -56,6 +59,7 @@ const showTime = (time) => {
   return time;
 };
 
+// Aligning user's data according to 31 days of the month
 const transformDays = (days) => {
   const daysMap = days.reduce((acc, cur) => {
     const [, , day] = cur.Date.split("-");
@@ -79,43 +83,51 @@ const transformDays = (days) => {
 
 const Table = ({ data }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [searched, setSearched] = useState("");
+  const [searchedUser, setSearchedUser] = useState("");
   const [order, setOrder] = useState("asc");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Modal handlers
   const isOpenHandler = () => {
     setIsOpen(true);
   };
+
   const isCloseHandler = () => {
     setIsOpen(false);
   };
 
-  const filteredRows = useMemo(() => data
-    .filter((row) => row.Fullname.toLowerCase().includes(searched.toLowerCase())), [data, searched])
-
-  const rows = useMemo(
-    () => {
-      const result = filteredRows
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-      if (order) {
-        return result.sort((a, b) => {
-          if (a.Fullname === b.Fullname) return 0;
-
-          if (order === 'asc') {
-            return a.Fullname > b.Fullname ? 1 : -1;
-          } else {
-            return a.Fullname < b.Fullname ? 1 : -1;
-          }
-        })
-      }
-
-      return result;
-    },
-    [filteredRows, order, page, rowsPerPage]
+  // Search users and pagination
+  const filteredRows = useMemo(
+    () =>
+      data.filter((row) =>
+        row.Fullname.toLowerCase().includes(searchedUser.toLowerCase())
+      ),
+    [data, searchedUser]
   );
 
-  const handleChangePage = (event, newPage) => {
+  const rows = useMemo(() => {
+    const result = filteredRows.slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage
+    );
+
+    if (order) {
+      return result.sort((a, b) => {
+        if (a.Fullname === b.Fullname) return 0;
+
+        if (order === "asc") {
+          return a.Fullname > b.Fullname ? 1 : -1;
+        } else {
+          return a.Fullname < b.Fullname ? 1 : -1;
+        }
+      });
+    }
+
+    return result;
+  }, [filteredRows, order, page, rowsPerPage]);
+
+  const handleChangePage = (newPage) => {
     setPage(newPage);
   };
 
@@ -134,10 +146,10 @@ const Table = ({ data }) => {
       ) : (
         <Paper>
           <Input
-            value={searched}
+            value={searchedUser}
             placeholder="Search"
             onChange={(e) => {
-              setSearched(e.target.value);
+              setSearchedUser(e.target.value);
               setPage(0);
             }}
           />
@@ -149,7 +161,9 @@ const Table = ({ data }) => {
                     <TableSortLabel
                       active={true}
                       direction={order}
-                      onClick={() => setOrder((prev) => prev === 'asc' ? 'desc' : 'asc')}
+                      onClick={() =>
+                        setOrder((prev) => (prev === "asc" ? "desc" : "asc"))
+                      }
                     >
                       <button onClick={isOpenHandler}>{headRows[0]}</button>
                     </TableSortLabel>
